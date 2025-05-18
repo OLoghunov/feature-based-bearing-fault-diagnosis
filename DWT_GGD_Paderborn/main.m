@@ -16,7 +16,7 @@ warning('off')
 close all
 features = table();
 
-signal_sizes = [30000, 2000, 5000, 10000, 30000];
+signal_sizes = [1000, 2000, 5000];
 accuracy = zeros(1, length(signal_sizes));
 
 for i = 1:length(signal_sizes)
