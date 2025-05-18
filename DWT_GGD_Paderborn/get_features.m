@@ -1,4 +1,4 @@
-function fts = GetFeatures(signal)
+function fts = get_features(signal)
     %% TIME DOMAIN
     % peak value
     %     
@@ -14,10 +14,10 @@ function fts = GetFeatures(signal)
     %
     i = 5; 
     levels = [1 2];
-    ftsOnLevel = 2;
+    fts_on_level = 2;
 
-    fts = zeros(1, length(levels) * ftsOnLevel);
-    normalizedCoefs = cell(1, length(levels));
+    fts = zeros(1, length(levels) * fts_on_level);
+    normalized_coefs = cell(1, length(levels));
 
     % wavelet coefficients
     %
@@ -34,7 +34,7 @@ function fts = GetFeatures(signal)
         wave_norm = rmoutliers(wave_norm, 'median');
         wave_norm = wave_norm';
 
-        normalizedCoefs(i) = {wave_norm};
+        normalized_coefs(i) = {wave_norm};
     end
 
     % energy of the wavelet coefficients
@@ -45,12 +45,12 @@ function fts = GetFeatures(signal)
     %% STATISTICAL ANALYSIS
     % distribution
     %
-    for i = 1:length(normalizedCoefs)
+    for i = 1:length(normalized_coefs)
 %         pd(i) = fitdist(cell2mat(normalizedCoefs(i)), 'normal');
-        pd = fitGGD(cell2mat(normalizedCoefs(i)));
+        pd = fit_GGD(cell2mat(normalized_coefs(i)));
 
-        fts(ftsOnLevel * i - 1) = pd.a;
-        fts(ftsOnLevel * i) = pd.b;
+        fts(fts_on_level * i - 1) = pd.a;
+        fts(fts_on_level * i) = pd.b;
 %         fts(ftsOnLevel * i) = pd.m;
     end
 end

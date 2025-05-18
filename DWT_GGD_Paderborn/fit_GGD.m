@@ -1,10 +1,10 @@
-function fittedmdl = fitGGD(x)
+function fittedmdl = fit_GGD(x)
     [y,x] = histcounts(x,'Normalization','probability');
     x(end) = [];
 
-    normFactor = 1/(x(2) - x(1));
+    norm_factor = 1/(x(2) - x(1));
 
-    x = x*normFactor;
+    x = x*norm_factor;
 
     a = (x(end) - x(1))/5; % bell curve width
     b = 2; % bell curve form
@@ -15,7 +15,7 @@ function fittedmdl = fitGGD(x)
     fittedmdl = fit(x',y',mdl,'start',[a b m],'lower',[0 0 0]);
 
     % Here warnings occur     
-    fittedmdl.a = fittedmdl.a/normFactor;
-    fittedmdl.m = fittedmdl.m/normFactor;
+    fittedmdl.a = fittedmdl.a/norm_factor;
+    fittedmdl.m = fittedmdl.m/norm_factor;
 end
 
