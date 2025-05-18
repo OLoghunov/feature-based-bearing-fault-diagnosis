@@ -14,7 +14,7 @@ close all
 % Data parameters
 cfg = config();
 
-n_folders = 8;
+n_folders = 6;
 n_samples_per_folder = 400;
 n_samples = n_folders * n_samples_per_folder;
 n_features = cfg.n_features;
@@ -44,7 +44,7 @@ for i = 1:length(signal_sizes)
 
     
     % OR Damage
-    varnames = ["KA04","KA05","KA22","KA30"];
+    varnames = ["KA04","KA15","KA16","KA22","KA30"];
 %     varnames = ["KB27"];
     fault_type = "ORDamage";
     features = load_data_into_table(features, varnames, fault_type, ...
@@ -53,13 +53,22 @@ for i = 1:length(signal_sizes)
     current_idx = current_idx + length(varnames)*n_samples_per_folder;
     
     % IR Damage
-    varnames = ["KI01","KI16","KI17","KI21"];
+    varnames = ["KI04","KI14","KI16","KI18","KI21"];
 %     varnames = ["KB23","KB24"];
     fault_type = "IRDamage";
     features = load_data_into_table(features, varnames, fault_type, ...
                                    signal_sizes(i), ...
                                    n_samples_per_folder, current_idx, cfg);   
     
+    features_matrix = table2array(features(:, 1:end-1));
+    response = features.response;
+    
+    [selected_features, selected_idx] = select_features(features_matrix, response);
+    
+    features_selected = array2table(selected_features, ...
+        'VariableNames', features.Properties.VariableNames(selected_idx));
+    features_selected.response = response;
+
     % Training    
     [~, accuracy(i)] = train_ensemble(features);
 end
