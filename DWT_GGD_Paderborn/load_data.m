@@ -1,11 +1,12 @@
-function features = load_data(varnames, fault_type, sig_size)
+function features = load_data(varnames, fault_type, sig_size, cfg)
 
     path = '..\Bearings For Experiment\';
     
     sample_count = 5;
+    fs = 64000;
 
     n_files = 80; %number of total files in Paderborn folder
-    n_features = 4;
+    n_features = cfg.n_features;
 
     sz = [length(varnames) * sample_count * n_files, n_features + 1];
     vartype = repmat({'double'},1,sz(2) - 1);
@@ -41,7 +42,7 @@ function features = load_data(varnames, fault_type, sig_size)
             % Searching for the desired signal in the dataset
             % Y(7) for vibration Y(2) for phase current 1
             fns = fieldnames(data_in);
-            signal = data_in.(fns{1}).Y(7).Data; 
+            signal = data_in.(fns{1}).Y(2).Data; 
    
             % RMS signal normalization
             R_dB = 0;
@@ -52,7 +53,9 @@ function features = load_data(varnames, fault_type, sig_size)
             % Features extraction
             step = sig_size/2;
             for j = 1:sample_count
-                fts = get_features(signal(j*step:j*step + sig_size));
+                fts = get_features(signal(j*step:j*step + sig_size), ...
+                    fs, ...
+                    rotational_speed);
 
                 % Table generation                 
                 fts_string = '';
