@@ -9,14 +9,14 @@ function fts = get_features(signal, fs, rpm)
 
     bpfo = (Nb/2) * (1 - (Bd/Pd)*cos(phi)) * (rpm/60);
     bpfi = (Nb/2) * (1 + (Bd/Pd)*cos(phi)) * (rpm/60);
-    
-    %%
 
     % Bands around BPFO/BPFI ±20%
     [b, a] = butter(4, [0.8*bpfo, 1.2*bpfo]/(fs/2), 'bandpass');
     bpfo_signal = filtfilt(b, a, signal);
     [b, a] = butter(4, [0.8*bpfi, 1.2*bpfi]/(fs/2), 'bandpass');
     bpfi_signal = filtfilt(b, a, signal);
+
+    %%
 
     wp = wpdec(signal, 3, 'db4');
     
@@ -47,26 +47,21 @@ function fts = get_features(signal, fs, rpm)
     
     freq_features = [bpfo_harmonics, bpfi_harmonics];
 
-    % Envelope through the Hilbert transform
-    env_bpfo = abs(hilbert(bpfo_signal));
-    env_bpfi = abs(hilbert(bpfi_signal));
-    
-    envelope_features = [
-        rms(env_bpfo), rms(env_bpfi), kurtosis(env_bpfo), entropy(env_bpfi), peak2peak(env_bpfo)
+    temporal_features = [
+        rms(signal), peak2peak(signal), kurtosis(signal), ...
+        skewness(signal), max(signal)/rms(signal)
     ];
-
-    % Depth of amplitude modulation
+    
     am_depth_bpfo = (max(bpfo_signal) - min(bpfo_signal)) / mean(abs(bpfo_signal));
     am_depth_bpfi = (max(bpfi_signal) - min(bpfi_signal)) / mean(abs(bpfi_signal));
     
-    % Energy ratio
     energy_ratio = sum(bpfo_signal.^2) / sum(bpfi_signal.^2);
     
     mod_features = [
         am_depth_bpfo, am_depth_bpfi, energy_ratio, mean(abs(diff(signal)))
     ];
 
-    fts = [wavelet_features, freq_features, envelope_features, mod_features];
+    fts = [wavelet_features, freq_features, temporal_features, mod_features];
 %     fts = wavelet_features([2, 4, 6, 8]);
 
 end
