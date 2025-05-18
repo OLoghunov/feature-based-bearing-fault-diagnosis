@@ -14,11 +14,15 @@ close all
 % Data parameters
 cfg = config();
 
-n_folders = 6;
+healthy_varnames = ["K001","K002","K003","K004","K005"];
+or_damage_varnames = ["KA04","KA15","KA16","KA22","KA30"];
+ir_damage_varnames = ["KI04","KI14","KI16","KI18","KI21"];
+
+n_folders = length([healthy_varnames, or_damage_varnames, ir_damage_varnames]);
 n_samples_per_folder = 400;
 n_samples = n_folders * n_samples_per_folder;
 n_features = cfg.n_features;
-signal_sizes = [10000];
+signal_sizes = [5000];
 accuracy = zeros(1, length(signal_sizes));
 
 feature_names = strcat('feature_', string(1:n_features));
@@ -34,29 +38,26 @@ for i = 1:length(signal_sizes)
     features.response(:) = "";  
 
     % Healthy
-    varnames = ["K001","K002","K003","K004","K005"];
 %     varnames = [];
     fault_type = "Healthy";
-    features = load_data_into_table(features, varnames, fault_type, ...
+    features = load_data_into_table(features, healthy_varnames, fault_type, ...
                                    signal_sizes(i), ...
                                    n_samples_per_folder, current_idx, cfg);
     current_idx = current_idx + length(varnames)*n_samples_per_folder;
 
     
     % OR Damage
-    varnames = ["KA04","KA15","KA16","KA22","KA30"];
 %     varnames = ["KB27"];
     fault_type = "ORDamage";
-    features = load_data_into_table(features, varnames, fault_type, ...
+    features = load_data_into_table(features, or_damage_varnames, fault_type, ...
                                    signal_sizes(i), ...
                                    n_samples_per_folder, current_idx, cfg);
     current_idx = current_idx + length(varnames)*n_samples_per_folder;
     
     % IR Damage
-    varnames = ["KI04","KI14","KI16","KI18","KI21"];
 %     varnames = ["KB23","KB24"];
     fault_type = "IRDamage";
-    features = load_data_into_table(features, varnames, fault_type, ...
+    features = load_data_into_table(features, ir_damage_varnames, fault_type, ...
                                    signal_sizes(i), ...
                                    n_samples_per_folder, current_idx, cfg);   
     
