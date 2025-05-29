@@ -2,7 +2,7 @@ function features = load_data(varnames, fault_type, sig_size, cfg)
 
     path = '..\Bearings For Experiment\';
     
-    sample_count = 5;
+    sample_count = 1;
     fs = 64000;
 
     n_files = 80; %number of total files in Paderborn folder
@@ -50,10 +50,13 @@ function features = load_data(varnames, fault_type, sig_size, cfg)
             scaling_factor = sqrt((length(signal) * R^2)/(sum(signal.^2)));
             signal = signal * scaling_factor;
    
+            % For full signal
+            sig_size = min(sig_size, length(signal));
+
             % Features extraction
             step = sig_size/2;
             for j = 1:sample_count
-                fts = get_features(signal(j*step:j*step + sig_size), ...
+                fts = get_features(signal((j-1)*step+1:(j-1)*step + sig_size), ...
                     fs, ...
                     rotational_speed);
 
