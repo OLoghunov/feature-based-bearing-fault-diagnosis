@@ -1,58 +1,30 @@
-function [ensemble, accuracy] = train_ensemble(training_data)
-    predictors = training_data{:,1:end-1};
-    response = training_data.response;
-    
-    % Standardization of data
-    predictors = normalize(predictors, 'zscore');
-    
-    % Checking the number of classes
-    if ~iscategorical(response)
-        response = categorical(response);
-    end
-    n_classes = numel(categories(response));
-    
-    % Initialization of models
-    models = {
-        @() fitctree(predictors, response, 'MaxNumSplits', 10), ...
-        @() fitcensemble(predictors, response, 'Method', 'Bag', 'Learners', 'tree', 'NumLearningCycles', 50), ...
-        @() fitcecoc(predictors, response, 'Learners', 'svm', 'Coding', 'onevsone', 'Options', statset('UseParallel', true)), ... % Многоклассовый SVM
-        @() fitcnet(predictors, response, 'LayerSizes', [20 10], 'Standardize', true), ...
-        @() fitcknn(predictors, response, 'NumNeighbors', 5, 'Standardize', true)
-    };
-    
-    % Cross-validation
-    kfold = 5;
-    cv = cvpartition(response, 'KFold', kfold);
-    acc = zeros(kfold,1);
-    
-    for i = 1:kfold
-        train_idx = cv.training(i);
-        test_idx = cv.test(i);
-        
-        votes = zeros(sum(test_idx), numel(models));
-        
-        % Learning and Prediction
-        for m = 1:numel(models)
-            try
-                model = models{m}();
-                pred = predict(model, predictors(test_idx,:));
-                votes(:,m) = double(pred == response(test_idx)); %1 if true, 0 if not
-            catch ME
-                warning('Model %d failed: %s', m, ME.message);
-                votes(:,m) = 0;
-            end
-        end
-        
-        % Majority voting
-        pred_accuracy = mean(votes, 2);
-        acc(i) = mean(pred_accuracy);
-    end
-    
-    accuracy = mean(acc)*100;
-    
-    % Final training on all data
-    ensemble = cell(1, numel(models));
-    for m = 1:numel(models)
-        ensemble{m} = models{m}();
-    end
-end
+function [trainedClassifier, validationAccuracy] = train_ensemble(trainingData, classNames)
+
+inputTable = trainingData;
+predictorNames = {'feature_1', 'feature_2', 'feature_3', 'feature_4', 'feature_5', 'feature_6', 'feature_7', 'feature_8', 'feature_9', 'feature_10', 'feature_11', 'feature_12', 'feature_13', 'feature_14', 'feature_15', 'feature_16', 'feature_17', 'feature_18', 'feature_19', 'feature_20', 'feature_21', 'feature_22', 'feature_23'};
+predictors = inputTable(:, predictorNames);
+response = inputTable.response;
+
+template = templateTree(...
+    'MaxNumSplits', 5999, ...
+    'NumVariablesToSample', 'all');
+classificationEnsemble = fitcensemble(...
+    predictors, ...
+    response, ...
+    'Method', 'Bag', ...
+    'NumLearningCycles', 30, ...
+    'Learners', template, ...
+    'ClassNames', classNames);
+
+% Create the result struct with predict function
+predictorExtractionFcn = @(t) t(:, predictorNames);
+ensemblePredictFcn = @(x) predict(classificationEnsemble, x);
+trainedClassifier.predictFcn = @(x) ensemblePredictFcn(predictorExtractionFcn(x));
+
+trainedClassifier.ClassificationEnsemble = classificationEnsemble;
+
+% Perform cross-validation
+partitionedModel = crossval(trainedClassifier.ClassificationEnsemble, 'KFold', 5);
+
+% Compute validation accuracy
+validationAccuracy = 1 - kfoldLoss(partitionedModel, 'LossFun', 'ClassifError');
