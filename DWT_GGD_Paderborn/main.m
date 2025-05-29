@@ -19,10 +19,10 @@ or_damage_varnames = ["KA04","KA15","KA16","KA22","KA30"];
 ir_damage_varnames = ["KI04","KI14","KI16","KI18","KI21"];
 
 n_folders = length([healthy_varnames, or_damage_varnames, ir_damage_varnames]);
-n_samples_per_folder = 400;
+n_samples_per_folder = 80;
 n_samples = n_folders * n_samples_per_folder;
 n_features = cfg.n_features;
-signal_sizes = [5000];
+signal_sizes = [1000, 2000, 5000, 100000, Inf];
 accuracy = zeros(1, length(signal_sizes));
 
 feature_names = strcat('feature_', string(1:n_features));
@@ -43,20 +43,20 @@ for i = 1:length(signal_sizes)
     features = load_data_into_table(features, healthy_varnames, fault_type, ...
                                    signal_sizes(i), ...
                                    n_samples_per_folder, current_idx, cfg);
-    current_idx = current_idx + length(varnames)*n_samples_per_folder;
+    current_idx = current_idx + length(healthy_varnames)*n_samples_per_folder;
 
     
     % OR Damage
 %     varnames = ["KB27"];
-    fault_type = "ORDamage";
+    fault_type = "OR Damage";
     features = load_data_into_table(features, or_damage_varnames, fault_type, ...
                                    signal_sizes(i), ...
                                    n_samples_per_folder, current_idx, cfg);
-    current_idx = current_idx + length(varnames)*n_samples_per_folder;
+    current_idx = current_idx + length(or_damage_varnames)*n_samples_per_folder;
     
     % IR Damage
 %     varnames = ["KB23","KB24"];
-    fault_type = "IRDamage";
+    fault_type = "IR Damage";
     features = load_data_into_table(features, ir_damage_varnames, fault_type, ...
                                    signal_sizes(i), ...
                                    n_samples_per_folder, current_idx, cfg);   
@@ -71,22 +71,7 @@ for i = 1:length(signal_sizes)
     features_selected.response = response;
 
     % Training    
-    [~, accuracy(i)] = train_ensemble(features);
-end
-
-plot(signal_sizes, accuracy, '-o', 'LineWidth', 2, 'MarkerSize', 8, 'MarkerFaceColor', 'w');
-xlabel('Signal length (samples)', 'FontSize', 12);
-ylabel('Accuracy', 'FontSize', 12);
-grid on;
-ylim([min(accuracy)-0.05, max(accuracy)+0.1]);
-
-text_offset = (max(accuracy) - min(accuracy)) * 0.05;
-
-for i = 1:length(signal_sizes)
-    text(signal_sizes(i), accuracy(i) + text_offset, ...
-        sprintf('%.1f%%', accuracy(i)*100), ...
-        'FontSize', 10, ...
-        'HorizontalAlignment', 'center');
+    [~, accuracy(i)] = train_ensemble(features, {'Healthy'; 'OR Damage'; 'IR Damage'});
 end
 
 warning('on')
